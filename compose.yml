@@ -1,0 +1,93 @@
+name: scrumbun
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: scrumbun
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d scrumbun"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DEPLOYMENT_TARGET: local
+      NODE_ENV: production
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      API_PORT: 4000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/scrumbun
+      DATABASE_APPLY_STRATEGY: push
+      DATABASE_SSL_MODE: disable
+      WEB_ORIGIN: http://localhost:8080
+      TRUST_PROXY: false
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-scrumbun_session}
+      SESSION_COOKIE_SECRET: ${SESSION_COOKIE_SECRET:-replace-me-with-a-long-random-secret}
+      SESSION_COOKIE_SAME_SITE: ${SESSION_COOKIE_SAME_SITE:-lax}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-noreply@scrumbun.local}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Scrumbun}
+      UPLOAD_STORAGE_DRIVER: local
+      UPLOAD_LOCAL_DIRECTORY: /app/data/uploads
+    expose:
+      - "4000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/api/health').then((response)=>{if(!response.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - uploads_data:/app/data/uploads
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/healthz >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  postgres_data:
+  uploads_data:

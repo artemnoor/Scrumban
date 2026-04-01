@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Engineering Control Board</title>
+  <link rel="icon" href="data:,">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg-pure: #000000;
+      --bg-soft: rgba(255, 255, 255, 0.03);
+      --bg-overlay: rgba(0, 0, 0, 0.78);
+      --border-base: 1px solid rgba(255, 255, 255, 0.25);
+      --border-hover: 1px solid rgba(255, 255, 255, 0.9);
+      --text-100: rgba(255, 255, 255, 1);
+      --text-72: rgba(255, 255, 255, 0.72);
+      --text-45: rgba(255, 255, 255, 0.45);
+      --accent: rgba(255, 255, 255, 0.16);
+      --shadow-soft: 0 24px 80px rgba(0, 0, 0, 0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      background-color: var(--bg-pure);
+      color: var(--text-100);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      background: none;
+      color: inherit;
+      border: none;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      border-bottom: var(--border-base);
+      flex-shrink: 0;
+      gap: 16px;
+    }
+
+    .project-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-100);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .board-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-45);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .btn-new,
+    .ghost-btn,
+    .danger-btn {
+      border-radius: 999px;
+      padding: 8px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-new,
+    .ghost-btn {
+      background: var(--bg-pure);
+      color: var(--text-100);
+      border: 1px solid var(--text-100);
+    }
+
+    .btn-new:hover,
+    .ghost-btn:hover {
+      background: var(--text-100);
+      color: var(--bg-pure);
+    }
+
+    .btn-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 10px 8px 8px;
+      min-height: 52px;
+      border-color: rgba(255, 255, 255, 0.78);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
+        var(--bg-pure);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-cta:hover {
+      background: var(--text-100);
+      color: var(--bg-pure);
+      transform: translateY(-1px);
+    }
+
+    .btn-cta-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      line-height: 1;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+      transition: inherit;
+    }
+
+    .btn-cta-copy {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      text-align: left;
+    }
+
+    .btn-cta-label {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+
+    .btn-cta-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--text-45);
+      transition: inherit;
+    }
+
+    .btn-cta:hover .btn-cta-mark {
+      border-color: rgba(0, 0, 0, 0.14);
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-cta:hover .btn-cta-meta {
+      color: rgba(0, 0, 0, 0.56);
+    }
+
+    .danger-btn {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.82);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .danger-btn:hover {
+      border-color: rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .board-container {
+      display: flex;
+      gap: 32px;
+      padding: 40px;
+      flex: 1;
+      overflow-x: auto;
+      align-items: flex-start;
+      cursor: grab;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+    }
+
+    .board-container.is-panning {
+      cursor: grabbing;
+      user-select: none;
+    }
+
+    .board-container::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .board-container::-webkit-scrollbar-track {
+      background: var(--bg-pure);
+    }
+
+    .board-container::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .column {
+      min-width: 340px;
+      width: 340px;
+      background: var(--bg-pure);
+      border: var(--border-base);
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-height: 100%;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+      scroll-snap-align: start;
+    }
+
+    .column.is-drop-target {
+      border-color: rgba(255, 255, 255, 0.82);
+      background: var(--bg-soft);
+    }
+
+    .col-header {
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: var(--border-base);
+      flex-shrink: 0;
+    }
+
+    .col-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-100);
+    }
+
+    .col-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-45);
+    }
+
+    .col-content {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 180px;
+    }
+
+    .col-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    .empty-state {
+      border: 1px dashed rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 18px;
+      color: var(--text-45);
+      font-size: 13px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .card {
+      background: var(--bg-pure);
+      border: var(--border-base);
+      border-radius: 14px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      border: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .card:focus-visible,
+    .btn-new:focus-visible,
+    .ghost-btn:focus-visible,
+    .danger-btn:focus-visible,
+    .icon-btn:focus-visible,
+    .field:focus-visible,
+    .textarea:focus-visible,
+    .select:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.92);
+      outline-offset: 2px;
+    }
+
+    .card.is-dragging {
+      opacity: 0.45;
+      transform: scale(0.98);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-100);
+      line-height: 1.4;
+    }
+
+    .card-subtitle {
+      font-size: 14px;
+      color: var(--text-72);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .card-owner-badge,
+    .card-deadline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .card-owner-badge {
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      font-weight: 500;
+    }
+
+    .card-deadline {
+      color: var(--text-45);
+    }
+
+    .card-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: var(--text-45);
+      white-space: nowrap;
+    }
+
+    .card-delete-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-45);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .card-delete-btn:hover {
+      border-color: rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-100);
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card-move-controls {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .card-move-btn {
+      min-height: 30px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-72);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      font-size: 11px;
+    }
+
+    .card-move-btn:hover:not(:disabled) {
+      border-color: rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-100);
+    }
+
+    .card-move-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-overlay);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-panel {
+      width: min(100%, 560px);
+      border-radius: 28px;
+      border: var(--border-base);
+      background: #050505;
+      box-shadow: var(--shadow-soft);
+      padding: 28px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .modal-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      border-color: rgba(255, 255, 255, 0.82);
+    }
+
+    .task-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-45);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .field,
+    .textarea,
+    .select {
+      width: 100%;
+      background: var(--bg-pure);
+      color: var(--text-100);
+      border: var(--border-base);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .color-field {
+      min-height: 52px;
+      padding: 8px;
+      cursor: pointer;
+      background: var(--bg-pure);
+    }
+
+    .color-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .color-swatch {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .color-swatch:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+
+    .color-swatch.is-selected {
+      border-color: rgba(255, 255, 255, 0.92);
+      box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .color-swatch.is-selected::after {
+      content: '';
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      transform: translate(-50%, -50%);
+    }
+
+    .modal-footer {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text-45);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        overflow: auto;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        padding: 16px;
+        align-items: flex-start;
+        flex-direction: column;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.96), rgba(0, 0, 0, 0.88)),
+          var(--bg-pure);
+        backdrop-filter: blur(10px);
+      }
+
+      .board-container {
+        padding: 16px;
+        gap: 16px;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: 16px;
+      }
+
+      .btn-cta {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .topbar-actions {
+        width: 100%;
+        align-items: stretch;
+      }
+
+      .board-status {
+        font-size: 10px;
+        line-height: 1.5;
+      }
+
+      .column {
+        min-width: min(78vw, 320px);
+        width: min(78vw, 320px);
+        min-height: calc(100vh - 168px);
+        border-radius: 20px;
+      }
+
+      .col-header {
+        padding: 18px 18px 16px;
+      }
+
+      .col-content {
+        padding: 18px;
+        gap: 14px;
+      }
+
+      .card {
+        padding: 16px;
+        border-radius: 18px;
+      }
+
+      .card-head {
+        flex-direction: column;
+      }
+
+      .card-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .card-footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .card-meta {
+        align-items: stretch;
+      }
+
+      .card-owner-badge {
+        width: fit-content;
+      }
+
+      .card-move-controls {
+        width: 100%;
+      }
+
+      .card-move-btn {
+        flex: 1;
+        min-height: 34px;
+        padding: 6px 8px;
+        font-size: 10px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal {
+        align-items: flex-end;
+        padding: 12px;
+      }
+
+      .modal-panel {
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 24px 24px 0 0;
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .project-title {
+        font-size: 12px;
+        letter-spacing: 1.1px;
+      }
+
+      .btn-cta {
+        min-height: 48px;
+      }
+
+      .board-container {
+        gap: 12px;
+        padding: 12px;
+        scroll-padding-inline: 12px;
+      }
+
+      .column {
+        min-width: min(82vw, 280px);
+        width: min(82vw, 280px);
+      }
+
+      .btn-cta-copy {
+        gap: 4px;
+      }
+
+      .modal-panel {
+        padding: 22px 18px max(22px, env(safe-area-inset-bottom));
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="project-title">PORTAL // APPLICANTS</div>
+    <div class="topbar-actions">
+      <div class="board-status" id="board-status">Drag cards, edit tasks, save automatically</div>
+      <button class="btn-new btn-cta" id="create-task-btn" type="button">
+        <span class="btn-cta-mark" aria-hidden="true">+</span>
+        <span class="btn-cta-copy">
+          <span class="btn-cta-label">New task</span>
+          <span class="btn-cta-meta">Create board card</span>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <main class="board-container" id="board"></main>
+
+  <div class="modal" id="task-modal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">New task</div>
+        <button class="icon-btn" id="close-modal-btn" type="button" aria-label="Close modal">x</button>
+      </div>
+
+      <form class="task-form" id="task-form">
+        <input id="task-id" type="hidden">
+
+        <div class="field-wrap">
+          <label class="field-label" for="task-title">Title</label>
+          <input class="field" id="task-title" name="title" maxlength="80" required>
+        </div>
+
+        <div class="field-wrap">
+          <label class="field-label" for="task-description">Description</label>
+          <textarea class="textarea" id="task-description" name="description" maxlength="180" required></textarea>
+        </div>
+
+        <div class="form-grid">
+          <div class="field-wrap">
+            <label class="field-label" for="task-owner">Owner</label>
+            <input class="field" id="task-owner" name="owner" maxlength="40" placeholder="Alex Morgan" required>
+          </div>
+
+          <div class="field-wrap">
+            <label class="field-label" for="task-owner-color">Owner color</label>
+            <input id="task-owner-color" name="ownerColor" type="hidden" value="#7bdff2">
+            <div class="color-picker-grid" id="task-owner-color-options" aria-label="Owner color" role="group"></div>
+          </div>
+
+          <div class="field-wrap">
+            <label class="field-label" for="task-date">Deadline</label>
+            <input class="field" id="task-date" name="date" maxlength="24" placeholder="30 Mar" required>
+          </div>
+
+          <div class="field-wrap">
+            <label class="field-label" for="task-status">Column</label>
+            <select class="select" id="task-status" name="status"></select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="hint">Cards can be moved with drag-and-drop. Changes are stored in your browser automatically.</div>
+          <div class="footer-actions">
+            <button class="danger-btn" id="delete-task-btn" type="button" hidden>Delete</button>
+            <button class="ghost-btn" id="cancel-task-btn" type="button">Cancel</button>
+            <button class="btn-new" type="submit">Save task</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'engineering-control-board-state';
+    const DEFAULT_OWNER_COLOR = '#7bdff2';
+    const OWNER_COLOR_OPTIONS = [
+      { value: '#7bdff2', label: 'Sky' },
+      { value: '#f7a072', label: 'Orange' },
+      { value: '#b8f2e6', label: 'Mint' },
+      { value: '#ff8fab', label: 'Pink' },
+      { value: '#f9f871', label: 'Lime' },
+      { value: '#90dbf4', label: 'Blue' },
+      { value: '#c8b6ff', label: 'Lavender' },
+      { value: '#a8e6cf', label: 'Green' }
+    ];
+
+    const columns = [
+      { id: 'ideas', title: 'Ideas', empty: 'Capture raw ideas and rough concepts here.' },
+      { id: 'backlog', title: 'Backlog', empty: 'Nothing here yet. Add a task or drag one here.' },
+      { id: 'ready', title: 'Ready', empty: 'Prioritized work that is ready to start appears here.' },
+      { id: 'in-progress', title: 'In progress', empty: 'Move active work into this column.' },
+      { id: 'code-review', title: 'Code review', empty: 'Use this lane for changes waiting on peer review.' },
+      { id: 'testing', title: 'Testing', empty: 'Put tasks under verification and QA in this column.' },
+      { id: 'done', title: 'Done', empty: 'Completed work lands here.' }
+    ];
+
+    const legacyStatusMap = {
+      todo: 'ready',
+      progress: 'in-progress',
+      review: 'code-review'
+    };
+
+    const validStatuses = new Set(columns.map((column) => column.id));
+
+    const initialTasks = [
+      {
+        id: 'task-1',
+        status: 'ideas',
+        title: 'Draft AI backlog assistant',
+        description: 'Sketch a helper that suggests priority and owner for new cards',
+        tag: 'FRONTEND',
+        owner: 'FRONTEND',
+        ownerColor: '#7bdff2',
+        date: '18 Mar'
+      },
+      {
+        id: 'task-2',
+        status: 'backlog',
+        title: 'Refine SVG animations',
+        description: 'Optimize code and smooth out transition curves',
+        tag: 'MOTION',
+        owner: 'MOTION',
+        ownerColor: '#f7a072',
+        date: '19 Mar'
+      },
+      {
+        id: 'task-3',
+        status: 'ready',
+        title: 'Generate 3D isometric symbols',
+        description: 'Maintain engineering techno-illustration style',
+        tag: 'ASSETS',
+        owner: 'ASSETS',
+        ownerColor: '#b8f2e6',
+        date: '20 Mar'
+      },
+      {
+        id: 'task-4',
+        status: 'in-progress',
+        title: 'Design star logo concept',
+        description: 'Play on the idea that the star illuminates the right path',
+        tag: 'UI/UX',
+        owner: 'UI/UX',
+        ownerColor: '#ff8fab',
+        date: '22 Mar'
+      },
+      {
+        id: 'task-5',
+        status: 'code-review',
+        title: 'Typography system',
+        description: 'Lock in Inter and JetBrains Mono pairings',
+        tag: 'DESIGN',
+        owner: 'DESIGN',
+        ownerColor: '#f9f871',
+        date: '23 Mar'
+      },
+      {
+        id: 'task-6',
+        status: 'testing',
+        title: 'Wireframe control board',
+        description: 'Pure black background, strict white outlines only',
+        tag: 'UX',
+        owner: 'UX',
+        ownerColor: '#90dbf4',
+        date: '24 Mar'
+      },
+      {
+        id: 'task-7',
+        status: 'done',
+        title: 'Set up browser persistence',
+        description: 'Store cards locally so the board restores after refresh',
+        tag: 'CORE',
+        owner: 'CORE',
+        ownerColor: '#c8b6ff',
+        date: '25 Mar'
+      }
+    ];
+
+    const board = document.getElementById('board');
+    const taskModal = document.getElementById('task-modal');
+    const taskForm = document.getElementById('task-form');
+    const boardStatus = document.getElementById('board-status');
+    const createTaskBtn = document.getElementById('create-task-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const cancelTaskBtn = document.getElementById('cancel-task-btn');
+    const deleteTaskBtn = document.getElementById('delete-task-btn');
+    const modalTitle = document.getElementById('modal-title');
+    const taskIdInput = document.getElementById('task-id');
+    const titleInput = document.getElementById('task-title');
+    const descriptionInput = document.getElementById('task-description');
+    const dateInput = document.getElementById('task-date');
+    const statusInput = document.getElementById('task-status');
+    const ownerInput = document.getElementById('task-owner');
+    const ownerColorInput = document.getElementById('task-owner-color');
+    const ownerColorOptions = document.getElementById('task-owner-color-options');
+
+    let tasks = loadTasks();
+    let draggedTaskId = null;
+    let boardPanState = null;
+
+    statusInput.innerHTML = columns
+      .map((column) => `<option value="${column.id}">${column.title}</option>`)
+      .join('');
+
+    renderOwnerColorOptions();
+    renderBoard();
+
+    createTaskBtn.addEventListener('click', () => openModal());
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelTaskBtn.addEventListener('click', closeModal);
+    deleteTaskBtn.addEventListener('click', deleteCurrentTask);
+    taskForm.addEventListener('submit', handleSubmit);
+
+    taskModal.addEventListener('click', (event) => {
+      if (event.target === taskModal) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && taskModal.classList.contains('is-open')) {
+        closeModal();
+      }
+    });
+
+    board.addEventListener('mousedown', startBoardPan);
+
+    function loadTasks() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          return normalizeTasks(initialTasks);
+        }
+
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return normalizeTasks(initialTasks);
+        }
+
+        return normalizeTasks(parsed);
+      } catch (error) {
+        console.error('Failed to load board state:', error);
+        return normalizeTasks(initialTasks);
+      }
+    }
+
+    function normalizeTasks(items) {
+      return items.map((task) => {
+        const nextStatus = legacyStatusMap[task.status] ?? task.status;
+        return {
+          ...task,
+          status: validStatuses.has(nextStatus) ? nextStatus : 'backlog',
+          ownerColor: normalizeColorValue(task.ownerColor)
+        };
+      });
+    }
+
+    function saveTasks() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+
+    function renderBoard() {
+      board.innerHTML = '';
+
+      columns.forEach((column) => {
+        const columnTasks = tasks.filter((task) => task.status === column.id);
+        const columnElement = document.createElement('section');
+        columnElement.className = 'column';
+        columnElement.dataset.columnId = column.id;
+
+        columnElement.innerHTML = `
+          <div class="col-header">
+            <span class="col-title">${column.title}</span>
+            <span class="col-count">${String(columnTasks.length).padStart(2, '0')}</span>
+          </div>
+          <div class="col-content" data-column-dropzone="${column.id}"></div>
+        `;
+
+        const content = columnElement.querySelector('.col-content');
+
+        columnElement.addEventListener('dragover', (event) => {
+          event.preventDefault();
+          columnElement.classList.add('is-drop-target');
+        });
+
+        columnElement.addEventListener('dragleave', (event) => {
+          if (!columnElement.contains(event.relatedTarget)) {
+            columnElement.classList.remove('is-drop-target');
+          }
+        });
+
+        columnElement.addEventListener('drop', (event) => {
+          event.preventDefault();
+          columnElement.classList.remove('is-drop-target');
+          if (!draggedTaskId) {
+            return;
+          }
+          moveTask(draggedTaskId, column.id);
+        });
+
+        if (columnTasks.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-state';
+          empty.textContent = column.empty;
+          content.appendChild(empty);
+        } else {
+          columnTasks.forEach((task) => {
+            content.appendChild(createTaskCard(task));
+          });
+        }
+
+        board.appendChild(columnElement);
+      });
+    }
+
+    function createTaskCard(task) {
+      const currentIndex = getColumnIndex(task.status);
+      const previousColumn = currentIndex > 0 ? columns[currentIndex - 1] : null;
+      const nextColumn = currentIndex >= 0 && currentIndex < columns.length - 1 ? columns[currentIndex + 1] : null;
+      const currentColumn = getColumnById(task.status);
+      const ownerColor = normalizeColorValue(task.ownerColor);
+      const ownerStyle = [
+        `color: ${ownerColor}`,
+        `background: ${hexToRgba(ownerColor, 0.14)}`,
+        `border-color: ${hexToRgba(ownerColor, 0.44)}`
+      ].join('; ');
+
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.draggable = true;
+      card.tabIndex = 0;
+      card.dataset.taskId = task.id;
+
+      card.innerHTML = `
+        <div class="card-head">
+          <div class="card-title">${escapeHtml(task.title)}</div>
+          <div class="card-actions">
+            <div class="card-badge">${escapeHtml(currentColumn ? currentColumn.title : task.status)}</div>
+            <button class="card-delete-btn" type="button" aria-label="Delete task" title="Delete task">x</button>
+          </div>
+        </div>
+        <div class="card-subtitle">${escapeHtml(task.description)}</div>
+        <div class="card-meta">
+          <div class="card-owner-badge" style="${ownerStyle}">${escapeHtml(task.owner || task.tag)}</div>
+          <div class="card-deadline">${escapeHtml(task.date)}</div>
+        </div>
+        <div class="card-footer">
+          <div class="card-move-controls">
+            <button
+              class="card-move-btn"
+              type="button"
+              data-target="${previousColumn ? previousColumn.id : ''}"
+              ${previousColumn ? '' : 'disabled'}
+            >
+              ${previousColumn ? `← ${escapeHtml(previousColumn.title)}` : '← Start'}
+            </button>
+            <button
+              class="card-move-btn"
+              type="button"
+              data-target="${nextColumn ? nextColumn.id : ''}"
+              ${nextColumn ? '' : 'disabled'}
+            >
+              ${nextColumn ? `${escapeHtml(nextColumn.title)} →` : 'Done →'}
+            </button>
+          </div>
+        </div>
+      `;
+
+      const deleteBtn = card.querySelector('.card-delete-btn');
+      const moveButtons = card.querySelectorAll('.card-move-btn');
+
+      card.addEventListener('click', () => openModal(task.id));
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openModal(task.id);
+        }
+      });
+
+      deleteBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        removeTask(task.id);
+      });
+
+      moveButtons.forEach((button) => {
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
+
+          const nextStatus = button.dataset.target;
+          if (!nextStatus) {
+            return;
+          }
+
+          moveTask(task.id, nextStatus);
+        });
+      });
+
+      card.addEventListener('dragstart', () => {
+        draggedTaskId = task.id;
+        card.classList.add('is-dragging');
+        updateStatusLine(`Dragging: ${task.title}`);
+      });
+
+      card.addEventListener('dragend', () => {
+        draggedTaskId = null;
+        card.classList.remove('is-dragging');
+        document.querySelectorAll('.column').forEach((column) => column.classList.remove('is-drop-target'));
+        updateStatusLine('Drag cards, edit tasks, save automatically');
+      });
+
+      return card;
+    }
+
+    function startBoardPan(event) {
+      if (event.button !== 0 || draggedTaskId || isInteractiveBoardTarget(event.target)) {
+        return;
+      }
+
+      boardPanState = {
+        startX: event.clientX,
+        startY: event.clientY,
+        scrollLeft: board.scrollLeft,
+        scrollTop: board.scrollTop
+      };
+
+      board.classList.add('is-panning');
+      window.addEventListener('mousemove', handleBoardPan);
+      window.addEventListener('mouseup', stopBoardPan);
+      window.addEventListener('blur', stopBoardPan);
+    }
+
+    function handleBoardPan(event) {
+      if (!boardPanState) {
+        return;
+      }
+
+      const offsetX = event.clientX - boardPanState.startX;
+      const offsetY = event.clientY - boardPanState.startY;
+
+      board.scrollLeft = boardPanState.scrollLeft - offsetX;
+      board.scrollTop = boardPanState.scrollTop - offsetY;
+
+      if (offsetX !== 0 || offsetY !== 0) {
+        event.preventDefault();
+      }
+    }
+
+    function stopBoardPan() {
+      if (!boardPanState) {
+        return;
+      }
+
+      boardPanState = null;
+      board.classList.remove('is-panning');
+      window.removeEventListener('mousemove', handleBoardPan);
+      window.removeEventListener('mouseup', stopBoardPan);
+      window.removeEventListener('blur', stopBoardPan);
+    }
+
+    function isInteractiveBoardTarget(target) {
+      return Boolean(target.closest('.card, button, input, textarea, select, option, label'));
+    }
+
+    function openModal(taskId = '') {
+      const isEdit = Boolean(taskId);
+      const task = isEdit ? tasks.find((item) => item.id === taskId) : null;
+
+      taskIdInput.value = task?.id || '';
+      titleInput.value = task?.title || '';
+      descriptionInput.value = task?.description || '';
+      dateInput.value = task?.date || formatToday();
+      statusInput.value = task?.status || 'backlog';
+      ownerInput.value = task?.owner || task?.tag || '';
+      setOwnerColor(normalizeColorValue(task?.ownerColor));
+      modalTitle.textContent = isEdit ? 'Edit task' : 'New task';
+      deleteTaskBtn.hidden = !isEdit;
+      taskModal.classList.add('is-open');
+      taskModal.setAttribute('aria-hidden', 'false');
+
+      requestAnimationFrame(() => titleInput.focus());
+    }
+
+    function closeModal() {
+      taskModal.classList.remove('is-open');
+      taskModal.setAttribute('aria-hidden', 'true');
+      taskForm.reset();
+      taskIdInput.value = '';
+      setOwnerColor(DEFAULT_OWNER_COLOR);
+    }
+
+    function handleSubmit(event) {
+      event.preventDefault();
+
+      const payload = {
+        id: taskIdInput.value || `task-${Date.now()}`,
+        title: titleInput.value.trim(),
+        description: descriptionInput.value.trim(),
+        date: dateInput.value.trim(),
+        status: statusInput.value,
+        owner: ownerInput.value.trim(),
+        ownerColor: normalizeColorValue(ownerColorInput.value)
+      };
+
+      if (!payload.title || !payload.description || !payload.owner || !payload.date) {
+        return;
+      }
+
+      const existingIndex = tasks.findIndex((task) => task.id === payload.id);
+
+      if (existingIndex >= 0) {
+        tasks[existingIndex] = payload;
+        updateStatusLine(`Task updated: ${payload.title}`);
+      } else {
+        tasks.unshift(payload);
+        updateStatusLine(`Task created: ${payload.title}`);
+      }
+
+      persistAndRender();
+      closeModal();
+    }
+
+    function deleteCurrentTask() {
+      const currentId = taskIdInput.value;
+      if (!currentId) {
+        return;
+      }
+
+      if (!removeTask(currentId)) {
+        return;
+      }
+
+      closeModal();
+    }
+
+    function removeTask(taskId) {
+      const task = tasks.find((item) => item.id === taskId);
+      if (!task) {
+        return false;
+      }
+
+      const isConfirmed = window.confirm(`Delete task "${task.title}"?`);
+      if (!isConfirmed) {
+        return false;
+      }
+
+      tasks = tasks.filter((item) => item.id !== taskId);
+      persistAndRender();
+      updateStatusLine(`Task deleted: ${task.title}`);
+      return true;
+    }
+
+    function moveTask(taskId, nextStatus) {
+      const task = tasks.find((item) => item.id === taskId);
+      if (!task || task.status === nextStatus) {
+        return;
+      }
+
+      task.status = nextStatus;
+      persistAndRender();
+      const column = columns.find((item) => item.id === nextStatus);
+      updateStatusLine(`Moved "${task.title}" to ${column ? column.title : nextStatus}`);
+    }
+
+    function getColumnById(status) {
+      return columns.find((column) => column.id === status) || null;
+    }
+
+    function getColumnIndex(status) {
+      return columns.findIndex((column) => column.id === status);
+    }
+
+    function normalizeColorValue(value) {
+      const normalizedValue = String(value || '').trim().toLowerCase();
+      return OWNER_COLOR_OPTIONS.some((option) => option.value === normalizedValue) ? normalizedValue : DEFAULT_OWNER_COLOR;
+    }
+
+    function hexToRgba(hex, alpha) {
+      const normalized = normalizeColorValue(hex).slice(1);
+      const red = parseInt(normalized.slice(0, 2), 16);
+      const green = parseInt(normalized.slice(2, 4), 16);
+      const blue = parseInt(normalized.slice(4, 6), 16);
+      return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+    }
+
+    function renderOwnerColorOptions() {
+      ownerColorOptions.innerHTML = OWNER_COLOR_OPTIONS
+        .map((option) => `
+          <button
+            class="color-swatch"
+            type="button"
+            data-color-value="${option.value}"
+            aria-label="${option.label}"
+            title="${option.label}"
+            style="background: ${option.value}"
+          ></button>
+        `)
+        .join('');
+
+      ownerColorOptions.querySelectorAll('.color-swatch').forEach((button) => {
+        button.addEventListener('click', () => {
+          setOwnerColor(button.dataset.colorValue);
+        });
+      });
+
+      setOwnerColor(ownerColorInput.value || DEFAULT_OWNER_COLOR);
+    }
+
+    function setOwnerColor(value) {
+      const normalizedValue = normalizeColorValue(value);
+      ownerColorInput.value = normalizedValue;
+
+      ownerColorOptions.querySelectorAll('.color-swatch').forEach((button) => {
+        const isSelected = button.dataset.colorValue === normalizedValue;
+        button.classList.toggle('is-selected', isSelected);
+        button.setAttribute('aria-pressed', String(isSelected));
+      });
+    }
+
+    function persistAndRender() {
+      saveTasks();
+      renderBoard();
+    }
+
+    function updateStatusLine(text) {
+      boardStatus.textContent = text;
+    }
+
+    function formatToday() {
+      const formatter = new Intl.DateTimeFormat('en', {
+        day: '2-digit',
+        month: 'short'
+      });
+
+      return formatter.format(new Date());
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+  </script>
+</body>
+</html>

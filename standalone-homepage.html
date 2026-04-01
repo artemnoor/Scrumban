@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scrumbun // Standalone Homepage</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg-pure: #000000;
+        --bg-card: rgba(5, 5, 5, 0.92);
+        --text-100: rgba(255, 255, 255, 1);
+        --text-68: rgba(255, 255, 255, 0.68);
+        --text-62: rgba(255, 255, 255, 0.62);
+        --text-54: rgba(255, 255, 255, 0.54);
+        --text-42: rgba(255, 255, 255, 0.42);
+        --border-soft: rgba(255, 255, 255, 0.14);
+        --border-faint: rgba(255, 255, 255, 0.1);
+        --shadow-soft: 0 28px 90px rgba(0, 0, 0, 0.34);
+        --radius-xl: 30px;
+        --radius-lg: 26px;
+        --radius-md: 24px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        background: var(--bg-pure);
+        color: var(--text-100);
+        font-family: "Satoshi", "Inter", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      a,
+      button {
+        color: inherit;
+        font: inherit;
+      }
+
+      a {
+        text-decoration: none;
+      }
+
+      .home-page {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+        isolation: isolate;
+      }
+
+      .home-background {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .home-glow {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(90px);
+        opacity: 0.42;
+      }
+
+      .home-glow-one {
+        top: -120px;
+        right: -80px;
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, rgba(79, 172, 254, 0.34), transparent 68%);
+      }
+
+      .home-glow-two {
+        left: -120px;
+        bottom: 90px;
+        width: 380px;
+        height: 380px;
+        background: radial-gradient(circle, rgba(255, 122, 61, 0.24), transparent 72%);
+      }
+
+      .home-noise {
+        position: absolute;
+        inset: 0;
+        opacity: 0.12;
+        background-image:
+          radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.16) 1px, transparent 0),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 24%);
+        background-size: 18px 18px, 100% 100%;
+      }
+
+      .home-topbar,
+      .home-main {
+        position: relative;
+        z-index: 1;
+      }
+
+      .home-topbar {
+        width: min(100%, 1440px);
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 40px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(14px);
+      }
+
+      .home-project-title {
+        font-family: "Satoshi", "Inter", sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.6px;
+        text-transform: uppercase;
+      }
+
+      .home-topbar-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .home-topbar-note {
+        max-width: 34ch;
+        color: var(--text-62);
+        font-size: 0.95rem;
+        line-height: 1.45;
+      }
+
+      .home-main {
+        width: min(100%, 1320px);
+        margin: 0 auto;
+        padding: 32px 32px 72px;
+        display: grid;
+        gap: 32px;
+      }
+
+      .home-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 24px;
+      }
+
+      .home-cut-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-xl);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+          var(--bg-card);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          var(--shadow-soft);
+      }
+
+      .home-cut-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 38px;
+        height: 38px;
+        background:
+          linear-gradient(135deg, transparent 46%, rgba(255, 255, 255, 0.18) 48%, rgba(255, 255, 255, 0.18) 52%, transparent 54%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .home-kicker,
+      .home-proof-index,
+      .home-step-index {
+        margin: 0;
+        color: var(--text-54);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .home-hero-copy {
+        grid-column: span 7;
+        padding: 44px 44px 40px;
+      }
+
+      .home-signal {
+        grid-column: span 5;
+        padding: 34px;
+        display: grid;
+        gap: 28px;
+      }
+
+      .home-hero-title,
+      .home-signal-title,
+      .home-section-title {
+        margin: 0;
+        font-family: "Clash Display", "Inter", sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.06em;
+        text-wrap: balance;
+      }
+
+      .home-hero-title {
+        margin-top: 20px;
+        max-width: 11ch;
+        font-size: clamp(3.6rem, 8vw, 6.8rem);
+        line-height: 0.92;
+      }
+
+      .home-signal-title,
+      .home-section-title {
+        margin-top: 14px;
+        font-size: clamp(2rem, 4vw, 3.25rem);
+        line-height: 0.96;
+      }
+
+      .home-hero-lead,
+      .home-signal-body,
+      .home-section-body,
+      .home-proof-body,
+      .home-step-copy p,
+      .home-signal-stat p {
+        margin: 0;
+        max-width: 60ch;
+        color: var(--text-68);
+        font-size: 1.0625rem;
+        line-height: 1.58;
+      }
+
+      .home-hero-lead {
+        margin-top: 24px;
+        max-width: 34rem;
+      }
+
+      .home-scan-list,
+      .home-proof-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .home-scan-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 28px;
+        max-width: 40rem;
+      }
+
+      .home-scan-item,
+      .home-proof-item {
+        position: relative;
+        padding-left: 24px;
+        color: rgba(255, 255, 255, 0.82);
+        line-height: 1.5;
+      }
+
+      .home-scan-item::before,
+      .home-proof-item::before {
+        content: "";
+        position: absolute;
+        top: 0.5em;
+        left: 0;
+        width: 11px;
+        height: 11px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.18));
+        box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.05);
+      }
+
+      .home-hero-actions,
+      .home-final-actions,
+      .home-trust-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+
+      .home-hero-actions {
+        margin-top: 32px;
+      }
+
+      .home-trust-row {
+        margin-top: 24px;
+      }
+
+      .home-trust-row span {
+        min-height: 30px;
+        padding: 0 12px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--text-62);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .home-cta {
+        min-height: 52px;
+        padding: 0 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        font-size: 0.96rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        transition:
+          transform 0.2s ease,
+          border-color 0.2s ease,
+          background 0.2s ease,
+          color 0.2s ease;
+      }
+
+      .home-cta:hover {
+        transform: translateY(-1px);
+      }
+
+      .home-cta-secondary {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .home-cta-secondary:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .home-cta-primary {
+        border-color: rgba(255, 255, 255, 0.88);
+        background: #f5f4ef;
+        color: #050505;
+      }
+
+      .home-cta-primary:hover {
+        background: white;
+      }
+
+      .home-signal-copy {
+        max-width: 28rem;
+      }
+
+      .home-signal-stage {
+        display: grid;
+        gap: 18px;
+      }
+
+      .home-signal-display {
+        position: relative;
+        min-height: 360px;
+        overflow: hidden;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-faint);
+        background:
+          radial-gradient(circle at 20% 24%, rgba(255, 122, 61, 0.24), transparent 38%),
+          radial-gradient(circle at 78% 20%, rgba(79, 172, 254, 0.24), transparent 42%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01)),
+          #090909;
+      }
+
+      .home-signal-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 100% 56px, 56px 100%;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.78), transparent 96%);
+      }
+
+      .home-signal-lines {
+        position: absolute;
+        inset: 34px 32px 28px;
+        display: flex;
+        align-items: flex-end;
+        gap: 14px;
+      }
+
+      .home-signal-lines span {
+        flex: 1;
+        border-radius: 999px 999px 0 0;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.08));
+        box-shadow: 0 0 24px rgba(255, 255, 255, 0.12);
+      }
+
+      .home-signal-lines span:nth-child(1) { height: 34%; opacity: 0.52; }
+      .home-signal-lines span:nth-child(2) { height: 58%; opacity: 0.76; }
+      .home-signal-lines span:nth-child(3) { height: 44%; opacity: 0.64; }
+      .home-signal-lines span:nth-child(4) { height: 72%; opacity: 0.94; }
+      .home-signal-lines span:nth-child(5) { height: 52%; opacity: 0.72; }
+      .home-signal-lines span:nth-child(6) { height: 86%; opacity: 1; }
+      .home-signal-lines span:nth-child(7) { height: 64%; opacity: 0.82; }
+      .home-signal-lines span:nth-child(8) { height: 78%; opacity: 0.88; }
+      .home-signal-lines span:nth-child(9) { height: 48%; opacity: 0.62; }
+
+      .home-signal-blobs span {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(28px);
+      }
+
+      .home-signal-blobs span:nth-child(1) {
+        top: 44px;
+        left: 32px;
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 122, 61, 0.16);
+      }
+
+      .home-signal-blobs span:nth-child(2) {
+        right: 34px;
+        top: 60px;
+        width: 150px;
+        height: 150px;
+        background: rgba(79, 172, 254, 0.14);
+      }
+
+      .home-signal-blobs span:nth-child(3) {
+        right: 90px;
+        bottom: 38px;
+        width: 180px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .home-signal-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .home-signal-stat,
+      .home-proof-card,
+      .home-step-card {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .home-signal-stat {
+        padding: 18px;
+        border-radius: 20px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .home-signal-stat span {
+        color: var(--text-42);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .home-signal-stat strong,
+      .home-proof-title,
+      .home-step-copy h3 {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.96);
+        font-size: 1.15rem;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .home-proof-card {
+        grid-column: span 4;
+        padding: 28px;
+        border-radius: var(--radius-lg);
+        display: grid;
+        gap: 16px;
+      }
+
+      .home-proof-index {
+        color: var(--text-42);
+      }
+
+      .home-proof-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .home-journey-copy {
+        grid-column: span 5;
+        padding: 34px;
+      }
+
+      .home-step-stack {
+        grid-column: span 7;
+        display: grid;
+        gap: 16px;
+      }
+
+      .home-step-card {
+        border-radius: var(--radius-md);
+        padding: 24px 26px;
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 18px;
+        align-items: flex-start;
+      }
+
+      .home-step-index {
+        color: rgba(255, 255, 255, 0.36);
+        font-size: 1rem;
+        line-height: 1;
+        padding-top: 2px;
+      }
+
+      .home-step-copy {
+        display: grid;
+        gap: 10px;
+      }
+
+      .home-final {
+        padding: 36px 40px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .home-final-copy {
+        max-width: 42rem;
+      }
+
+      .home-final-actions {
+        justify-content: flex-end;
+      }
+
+      @media (max-width: 960px) {
+        .home-topbar,
+        .home-main {
+          padding: 16px;
+        }
+
+        .home-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .home-hero-copy,
+        .home-signal,
+        .home-proof-card,
+        .home-journey-copy,
+        .home-step-stack {
+          grid-column: 1 / -1;
+        }
+
+        .home-signal-stats {
+          grid-template-columns: 1fr;
+        }
+
+        .home-final {
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 28px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .home-hero-copy,
+        .home-signal,
+        .home-journey-copy,
+        .home-proof-card,
+        .home-step-card,
+        .home-final {
+          padding: 24px;
+          border-radius: 24px;
+        }
+
+        .home-step-card {
+          grid-template-columns: 1fr;
+        }
+
+        .home-topbar {
+          align-items: flex-start;
+        }
+
+        .home-topbar-actions,
+        .home-hero-actions,
+        .home-final-actions {
+          width: 100%;
+        }
+
+        .home-cta {
+          width: 100%;
+        }
+
+        .home-signal-display {
+          min-height: 280px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="home-page">
+      <div class="home-background" aria-hidden="true">
+        <div class="home-glow home-glow-one"></div>
+        <div class="home-glow home-glow-two"></div>
+        <div class="home-noise"></div>
+      </div>
+
+      <header class="home-topbar">
+        <div class="home-project-title">SCRUMBUN // CONTROL SYSTEM</div>
+
+        <div class="home-topbar-actions">
+          <div class="home-topbar-note">
+            Канбан для команды, который выглядит как продукт, а не как черновик.
+          </div>
+          <a class="home-cta home-cta-secondary" href="#">Войти</a>
+          <a class="home-cta home-cta-primary" href="#">Создать аккаунт</a>
+        </div>
+      </header>
+
+      <main class="home-main">
+        <section class="home-grid">
+          <div class="home-hero-copy home-cut-card">
+            <p class="home-kicker">Система для задач и команды</p>
+            <h1 class="home-hero-title">
+              Канбан, который помогает принимать решения, а не просто хранить карточки.
+            </h1>
+            <p class="home-hero-lead">
+              Scrumbun собирает в одном месте доски, роли, приглашения, цвета, drag-and-drop и
+              реальный fullstack-фундамент. Главная страница теперь не объясняет стек, а продает
+              сам опыт работы с продуктом.
+            </p>
+
+            <ul class="home-scan-list">
+              <li class="home-scan-item">
+                Одна главная цель страницы: быстро завести команду в рабочее пространство.
+              </li>
+              <li class="home-scan-item">
+                Контраст, типографика и отступы выстроены так, чтобы CTA читался с первого взгляда.
+              </li>
+              <li class="home-scan-item">
+                Графический блок справа рифмуется с канбаном и дашбордами, а не существует сам по себе.
+              </li>
+            </ul>
+
+            <div class="home-hero-actions">
+              <a class="home-cta home-cta-primary" href="#">Начать работу</a>
+              <a class="home-cta home-cta-secondary" href="#">У меня уже есть аккаунт</a>
+            </div>
+
+            <div class="home-trust-row">
+              <span>Invite-коды</span>
+              <span>Роли и модерация</span>
+              <span>Готово к Docker-деплою</span>
+            </div>
+          </div>
+
+          <aside class="home-signal home-cut-card">
+            <div class="home-signal-copy">
+              <p class="home-kicker">Звезда шоу</p>
+              <h2 class="home-signal-title">Сигнал, ритм, поток.</h2>
+              <p class="home-signal-body">
+                Графический блок отсылает не к абстрактной красоте, а к самой сути продукта:
+                статусам, колонкам, графикам загрузки и плотному операционному контролю.
+              </p>
+            </div>
+
+            <div class="home-signal-stage">
+              <div class="home-signal-display">
+                <div class="home-signal-grid"></div>
+                <div class="home-signal-lines">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <div class="home-signal-blobs">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+
+              <div class="home-signal-stats">
+                <article class="home-signal-stat">
+                  <span>01</span>
+                  <strong>Видимый приоритет</strong>
+                  <p>Главный заголовок и CTA читаются первыми даже при беглом просмотре.</p>
+                </article>
+                <article class="home-signal-stat">
+                  <span>02</span>
+                  <strong>Сканируемый контент</strong>
+                  <p>Крупные абзацы разбиты, списки и карточки дают четкие точки входа для глаза.</p>
+                </article>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section class="home-grid">
+          <article class="home-proof-card home-cut-card">
+            <div class="home-proof-index">01</div>
+            <h3 class="home-proof-title">Поток работы без лишнего шума</h3>
+            <p class="home-proof-body">
+              Одна доска собирает задачи, исполнителей, цвета, сроки и реальные колонки в единую
+              систему, которую легко сканировать.
+            </p>
+            <ul class="home-proof-list">
+              <li class="home-proof-item">drag-and-drop по колонкам</li>
+              <li class="home-proof-item">цвета участников и статусов</li>
+              <li class="home-proof-item">редактирование карточек без обходных путей</li>
+            </ul>
+          </article>
+
+          <article class="home-proof-card home-cut-card">
+            <div class="home-proof-index">02</div>
+            <h3 class="home-proof-title">Команда подключается за минуты</h3>
+            <p class="home-proof-body">
+              Вместо ручной рутины доска живет через invite-код, роли и понятные права доступа.
+            </p>
+            <ul class="home-proof-list">
+              <li class="home-proof-item">вступление по коду</li>
+              <li class="home-proof-item">owner и admin-контроль</li>
+              <li class="home-proof-item">отдельная страница управления досками</li>
+            </ul>
+          </article>
+
+          <article class="home-proof-card home-cut-card">
+            <div class="home-proof-index">03</div>
+            <h3 class="home-proof-title">Продукт не заканчивается на красивом экране</h3>
+            <p class="home-proof-body">
+              Под капотом уже собран рабочий fullstack-стек, который можно тестировать, развивать и
+              доводить до продакшена.
+            </p>
+            <ul class="home-proof-list">
+              <li class="home-proof-item">React + Fastify</li>
+              <li class="home-proof-item">PostgreSQL + Prisma</li>
+              <li class="home-proof-item">Docker-ready структура</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="home-grid">
+          <div class="home-journey-copy home-cut-card">
+            <p class="home-kicker">Один понятный путь</p>
+            <h2 class="home-section-title">Страница ведет к действию, а не распыляет внимание.</h2>
+            <p class="home-section-body">
+              У главной есть одна задача: быстро объяснить, почему Scrumbun полезен прямо сейчас,
+              и довести пользователя до входа в рабочее пространство. Поэтому CTA повторяется, а
+              каждая секция отвечает на свой конкретный вопрос.
+            </p>
+          </div>
+
+          <div class="home-step-stack">
+            <article class="home-step-card home-cut-card">
+              <div class="home-step-index">01</div>
+              <div class="home-step-copy">
+                <h3>Создать пространство</h3>
+                <p>Запускаете новую доску, задаете структуру колонок и сразу определяете ритм команды.</p>
+              </div>
+            </article>
+
+            <article class="home-step-card home-cut-card">
+              <div class="home-step-index">02</div>
+              <div class="home-step-copy">
+                <h3>Собрать команду</h3>
+                <p>Делитесь кодом приглашения, подключаете людей и назначаете каждому цвет и роль в общем потоке.</p>
+              </div>
+            </article>
+
+            <article class="home-step-card home-cut-card">
+              <div class="home-step-index">03</div>
+              <div class="home-step-copy">
+                <h3>Двигать работу вперед</h3>
+                <p>Редактируете карточки, переносите задачи мышью и держите статус проекта под визуальным контролем.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="home-final home-cut-card">
+          <div class="home-final-copy">
+            <p class="home-kicker">Финальный CTA</p>
+            <h2 class="home-section-title">Запустить доску и довести команду до стабильного потока.</h2>
+            <p class="home-section-body">
+              Главная больше не конкурирует сама с собой. Она приводит пользователя к одному
+              решению: войти, создать пространство и начать вести работу в одном ясном интерфейсе.
+            </p>
+          </div>
+
+          <div class="home-final-actions">
+            <a class="home-cta home-cta-primary" href="#">Создать аккаунт</a>
+            <a class="home-cta home-cta-secondary" href="#">Войти в систему</a>
+          </div>
+        </section>
+      </main>
+    </section>
+  </body>
+</html>

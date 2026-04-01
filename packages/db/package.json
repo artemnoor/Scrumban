@@ -1,0 +1,35 @@
+{
+  "name": "@scrumbun/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node -e \"console.log('No tests configured for @scrumbun/db yet')\"",
+    "db:generate": "tsx scripts/prisma-command.ts generate --schema prisma/schema.prisma",
+    "db:migrate": "tsx scripts/prisma-command.ts migrate dev --schema prisma/schema.prisma",
+    "db:deploy": "tsx scripts/prisma-command.ts migrate deploy --schema prisma/schema.prisma",
+    "db:push": "tsx scripts/prisma-command.ts db push --schema prisma/schema.prisma --skip-generate",
+    "db:reset": "tsx scripts/prisma-command.ts db push --force-reset --schema prisma/schema.prisma --skip-generate",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "@scrumbun/config": "workspace:*"
+  },
+  "devDependencies": {
+    "prisma": "^6.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

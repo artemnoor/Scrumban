@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String        @id @default(cuid())
+  email            String        @unique
+  passwordHash     String
+  displayName      String
+  role             UserRole      @default(USER)
+  emailVerificationStatus EmailVerificationStatus @default(VERIFIED)
+  emailVerifiedAt  DateTime?
+  sessions         Session[]
+  emailVerificationTokens EmailVerificationToken[]
+  tasks            Task[]        @relation("TaskAssignee")
+  createdTasks     Task[]        @relation("TaskCreator")
+  boards           Board[]       @relation("BoardOwner")
+  boardMemberships BoardMember[]
+  archivedBoards   Board[]       @relation("BoardArchivedBy")
+  archivedTasks    Task[]        @relation("TaskArchivedBy")
+  attachments      Attachment[]  @relation("AttachmentUploader")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EmailVerificationToken {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Board {
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  inviteCode   String        @unique @default(cuid())
+  description  String?
+  ownerId      String?
+  owner        User?         @relation("BoardOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  archivedAt   DateTime?
+  archivedById String?
+  archivedBy   User?         @relation("BoardArchivedBy", fields: [archivedById], references: [id], onDelete: SetNull)
+  tasks        Task[]
+  members      BoardMember[]
+  columns      BoardColumn[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model BoardMember {
+  boardId    String
+  userId     String
+  color      String       @default("#F97316")
+  board      Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@id([boardId, userId])
+  @@index([userId])
+}
+
+model BoardColumn {
+  id        String   @id @default(cuid())
+  boardId    String
+  board      Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String
+  color     String   @default("#6B7280")
+  position  Int
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([boardId, slug])
+  @@unique([boardId, position])
+  @@index([boardId])
+}
+
+model Task {
+  id           String       @id @default(cuid())
+  boardId      String
+  board        Board        @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  columnId     String
+  column       BoardColumn  @relation(fields: [columnId], references: [id], onDelete: Restrict)
+  title        String
+  description  String?
+  dueDate      DateTime?
+  assigneeId   String?
+  assignee     User?        @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdById  String?
+  createdBy    User?        @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  archivedAt   DateTime?
+  archivedById String?
+  archivedBy   User?        @relation("TaskArchivedBy", fields: [archivedById], references: [id], onDelete: SetNull)
+  attachments  Attachment[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([boardId, columnId])
+}
+
+model Attachment {
+  id            String   @id @default(cuid())
+  taskId        String?
+  task          Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  uploadedById  String?
+  uploadedBy    User?    @relation("AttachmentUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  originalName  String
+  storageDriver String
+  storagePath   String
+  mimeType      String?
+  fileSizeBytes Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum EmailVerificationStatus {
+  PENDING
+  VERIFIED
+}

@@ -1,0 +1,50 @@
+name: scrumbun-production
+
+services:
+  api:
+    image: ${YC_REGISTRY_HOST:-cr.yandex}/${YC_REGISTRY_ID:?Set YC_REGISTRY_ID}/scrumbun-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - ${PRODUCTION_ENV_FILE:-.env.production}
+    environment:
+      DEPLOYMENT_TARGET: yandex-cloud
+      NODE_ENV: production
+      API_PORT: 4000
+      DATABASE_APPLY_STRATEGY: ${DATABASE_APPLY_STRATEGY:-migrate-deploy}
+      DATABASE_SSL_MODE: ${DATABASE_SSL_MODE:-verify-full}
+      TRUST_PROXY: true
+      SESSION_COOKIE_SECURE: true
+      SESSION_COOKIE_SAME_SITE: ${SESSION_COOKIE_SAME_SITE:-lax}
+    expose:
+      - "4000"
+    volumes:
+      - uploads_data:/app/data/uploads
+      - ${DATABASE_SSL_ROOT_CERT_PATH_HOST:-./certs/root.crt}:${DATABASE_SSL_ROOT_CERT_PATH_CONTAINER:-/run/secrets/yandex-cloud-postgres-ca.crt}:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/api/ready').then((response)=>{if(!response.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  web:
+    image: ${YC_REGISTRY_HOST:-cr.yandex}/${YC_REGISTRY_ID:?Set YC_REGISTRY_ID}/scrumbun-web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${WEB_PUBLIC_PORT:-8080}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/healthz >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  uploads_data:

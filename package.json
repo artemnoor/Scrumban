@@ -1,0 +1,32 @@
+{
+  "name": "scrumbun",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.24.0",
+  "scripts": {
+    "dev": "concurrently -n web,api -c cyan,green \"pnpm dev:web\" \"pnpm dev:api\"",
+    "dev:web": "pnpm --filter @scrumbun/web dev",
+    "dev:api": "pnpm --filter @scrumbun/api dev",
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "db:generate": "pnpm --filter @scrumbun/db db:generate",
+    "db:migrate": "pnpm --filter @scrumbun/db db:migrate",
+    "db:deploy": "pnpm --filter @scrumbun/db db:deploy",
+    "db:push": "pnpm --filter @scrumbun/db db:push",
+    "db:seed": "pnpm --filter @scrumbun/db db:seed",
+    "db:reset": "pnpm --filter @scrumbun/db db:reset",
+    "db:bootstrap": "pnpm db:generate && pnpm db:reset && pnpm db:seed",
+    "deploy:yc:build-push": "sh scripts/deploy/yc-build-push.sh",
+    "deploy:yc:rollout": "sh scripts/deploy/yc-rollout.sh",
+    "deploy:yc:smoke": "sh scripts/deploy/yc-smoke-check.sh",
+    "deploy:yc:render-host-nginx": "sh scripts/deploy/render-host-nginx.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

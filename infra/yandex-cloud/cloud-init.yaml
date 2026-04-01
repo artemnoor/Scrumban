@@ -1,0 +1,28 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - ca-certificates
+  - curl
+  - docker.io
+  - docker-compose-plugin
+  - gettext-base
+  - nginx
+
+users:
+  - name: ${deploy_user}
+    groups: [sudo, docker]
+    shell: /bin/bash
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+  - systemctl enable nginx
+  - systemctl start nginx
+  - mkdir -p /opt/scrumbun/docker/nginx /opt/scrumbun/certs /opt/scrumbun/rendered
+  - chown -R ${deploy_user}:${deploy_user} /opt/scrumbun
+  - sh -c "echo 'Web port placeholder: ${web_public_port}' > /opt/scrumbun/BOOTSTRAP_NOTES.txt"
